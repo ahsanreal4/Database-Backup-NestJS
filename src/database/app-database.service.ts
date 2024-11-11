@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as mysql from 'mysql2/promise';
-import { EnvironmentVariables } from 'src/config/envConfiguration';
+import { EnvironmentVariables } from 'src/types/environmentVariables';
 
 @Injectable()
 export class AppDatabaseService {
@@ -39,7 +39,8 @@ export class AppDatabaseService {
         CREATE TABLE IF NOT EXISTS users (
           id INT PRIMARY KEY AUTO_INCREMENT,
           name VARCHAR(255) NOT NULL,
-          email VARCHAR(255) UNIQUE NOT NULL
+          email VARCHAR(255) UNIQUE NOT NULL,
+          password VARCHAR(255) NOT NULL
         );
       `;
       await this.connection.execute(query);
