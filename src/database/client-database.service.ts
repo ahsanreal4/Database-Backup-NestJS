@@ -4,12 +4,14 @@ import { ConnectMySqlService } from './connect-db/connect-mysql.service';
 import { Database } from 'src/types/enums/database';
 import { ConnectPostGreSqlService } from './connect-db/connect-postgresql.service';
 import { UploadApiResponse } from 'cloudinary';
+import { FileUploadService } from 'src/file-upload/file-upload.service';
 
 @Injectable()
 export class ClientDatabaseService {
   constructor(
     private mySqlService: ConnectMySqlService,
     private postGreSqlService: ConnectPostGreSqlService,
+    private fileService: FileUploadService,
   ) {}
 
   private isDatabaseSupported(database: Database): boolean {
@@ -21,6 +23,23 @@ export class ClientDatabaseService {
       case Database.MONGO:
         return false;
     }
+  }
+
+  private async writeToFile(
+    backupData: string,
+    databaseName: string,
+  ): Promise<UploadApiResponse> {
+    const bytesStream = Buffer.from(backupData);
+
+    const fileName =
+      databaseName +
+      '-' +
+      new Date().getTime() +
+      Math.round(Math.random() * 100)
+        .toFixed(2)
+        .toString();
+
+    return await this.fileService.uploadFile(bytesStream, fileName);
   }
 
   private throwErrorIfDatabaseNotSupported(database: Database) {
@@ -59,7 +78,7 @@ export class ClientDatabaseService {
 
   private async createDatabaseBackupUtil(
     databaseCredentialsDto: DatabaseCredentialsDto,
-  ): Promise<UploadApiResponse> {
+  ): Promise<string> {
     // MySQL
     if (databaseCredentialsDto.databaseType == Database.MYSQL)
       return await this.mySqlService.getDatabaseBackup(databaseCredentialsDto);
@@ -80,7 +99,15 @@ export class ClientDatabaseService {
 
   async createDatabaseBackup(databaseCredentialsDto: DatabaseCredentialsDto) {
     this.throwErrorIfDatabaseNotSupported(databaseCredentialsDto.databaseType);
-    const result = await this.createDatabaseBackupUtil(databaseCredentialsDto);
+    const backupData = await this.createDatabaseBackupUtil(
+      databaseCredentialsDto,
+    );
+
+    const result = await this.writeToFile(
+      backupData,
+      databaseCredentialsDto.name,
+    );
+
     return result.url;
   }
 }

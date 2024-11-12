@@ -1,13 +1,10 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { DatabaseCredentialsDto } from 'src/dto/database/databaseCredentialsDto';
 import * as mysql from 'mysql2/promise';
-import { FileUploadService } from 'src/file-upload/file-upload.service';
 
 @Injectable()
 export class ConnectMySqlService {
   connection: mysql.Connection;
-
-  constructor(private fileUploadService: FileUploadService) {}
 
   async connect(databaseCredentialsDto: DatabaseCredentialsDto) {
     const { host, name, password, username } = databaseCredentialsDto;
@@ -57,7 +54,7 @@ export class ConnectMySqlService {
     }
   }
 
-  private async createBackup(databaseName: string) {
+  private async createBackup() {
     try {
       const tables = await this.getTableNames();
       let backupData = '';
@@ -79,17 +76,7 @@ export class ConnectMySqlService {
         });
       }
 
-      const bytesStream = Buffer.from(backupData);
-
-      const fileName =
-        databaseName +
-        '-' +
-        new Date().getTime() +
-        Math.round(Math.random() * 100)
-          .toFixed(2)
-          .toString();
-
-      return await this.fileUploadService.uploadFile(bytesStream, fileName);
+      return backupData;
     } catch (error) {
       throw new BadRequestException('Database backup failed', error.message);
     }
@@ -97,7 +84,7 @@ export class ConnectMySqlService {
 
   async getDatabaseBackup(databaseCredentialsDto: DatabaseCredentialsDto) {
     await this.connect(databaseCredentialsDto);
-    const result = await this.createBackup(databaseCredentialsDto.name);
+    const result = await this.createBackup();
     await this.disconnect();
     return result;
   }
