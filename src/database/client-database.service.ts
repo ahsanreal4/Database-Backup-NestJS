@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { DatabaseCredentialsDto } from 'src/dto/database/databaseCredentialsDto';
+import { DatabaseCredentialsDto } from 'src/database/dto/databaseCredentialsDto';
 import { ConnectMySqlService } from './connect-db/connect-mysql.service';
 import { Database } from 'src/types/enums/database';
 import { ConnectPostGreSqlService } from './connect-db/connect-postgresql.service';

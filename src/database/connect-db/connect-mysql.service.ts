@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { DatabaseCredentialsDto } from 'src/dto/database/databaseCredentialsDto';
+import { DatabaseCredentialsDto } from 'src/database/dto/databaseCredentialsDto';
 import * as mysql from 'mysql2/promise';
 
 @Injectable()
@@ -81,6 +81,8 @@ export class ConnectMySqlService {
       throw new BadRequestException('Database backup failed', error.message);
     }
   }
+
+  private async restoreBackup(backup: string) {}
 
   async getDatabaseBackup(databaseCredentialsDto: DatabaseCredentialsDto) {
     await this.connect(databaseCredentialsDto);

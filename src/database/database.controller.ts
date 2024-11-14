@@ -1,5 +1,5 @@
 import { Body, Controller, HttpCode, HttpStatus, Post } from '@nestjs/common';
-import { DatabaseCredentialsDto } from 'src/dto/database/databaseCredentialsDto';
+import { DatabaseCredentialsDto } from 'src/database/dto/databaseCredentialsDto';
 import { ClientDatabaseService } from './client-database.service';
 
 @Controller('api/database')
