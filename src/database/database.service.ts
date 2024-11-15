@@ -13,6 +13,7 @@ import { Backup } from 'src/common/schema/backup';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { User } from 'src/common/schema/user';
+import { CreateBackupDto } from './dto/createBackupDto';
 
 @Injectable()
 export class DatabaseService {
@@ -31,27 +32,32 @@ export class DatabaseService {
     return 'Database connected successfully';
   }
 
-  async createDatabaseBackup(
-    databaseCredentialsDto: DatabaseCredentialsDto,
-    userId: string,
-  ) {
-    this.throwErrorIfDatabaseNotSupported(databaseCredentialsDto.databaseType);
-    const backupData = await this.createDatabaseBackupUtil(
-      databaseCredentialsDto,
-    );
+  async createDatabaseBackup(createBackupDto: CreateBackupDto, userId: string) {
+    const { databaseCredentials, name } = createBackupDto;
 
-    const result = await this.writeToFile(
-      backupData,
-      databaseCredentialsDto.name,
-    );
+    const findExistingBackup = await this.backupModel
+      .findOne({ name, userId })
+      .exec();
+
+    if (findExistingBackup)
+      throw new BadRequestException(
+        'create backup failed',
+        'backup with this name already exists',
+      );
+
+    this.throwErrorIfDatabaseNotSupported(databaseCredentials.databaseType);
+    const backupData = await this.createDatabaseBackupUtil(databaseCredentials);
+
+    const result = await this.writeToFile(backupData, databaseCredentials.name);
 
     const backup: Backup = {
       publicId: result.public_id,
       createdAt: new Date(),
-      databaseType: databaseCredentialsDto.databaseType,
+      databaseType: databaseCredentials.databaseType,
       url: result.url,
       userId: userId as unknown as User,
-      databaseCredentials: databaseCredentialsDto,
+      databaseCredentials,
+      name,
     };
 
     try {
@@ -138,6 +144,18 @@ export class DatabaseService {
     await this.deleteFile(backup.publicId);
 
     return 'Backup deleted successfully';
+  }
+
+  async deleteAllDatabaseBackups(userId: string) {
+    const backups = await this.backupModel.find({ userId }).exec();
+
+    await Promise.allSettled(
+      backups.map(async (backup) => {
+        await this.deleteDatabaseBackup(backup._id.toString());
+      }),
+    );
+
+    return 'All backups deleted successfully';
   }
 
   private async deleteFile(publicId: string) {

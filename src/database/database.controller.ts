@@ -15,6 +15,7 @@ import { DatabaseCredentialsDto } from 'src/database/dto/databaseCredentialsDto'
 import { DatabaseService } from './database.service';
 import { JwtAuthGuard } from 'src/auth/auth.guard';
 import { getUserIdFromRequestOrThrowError } from 'src/common/utils/request';
+import { CreateBackupDto } from './dto/createBackupDto';
 
 @UseGuards(JwtAuthGuard)
 @Controller('api/database')
@@ -32,7 +33,7 @@ export class DatabaseController {
   @HttpCode(HttpStatus.CREATED)
   @Post('/backup')
   async createDatabaseBackup(
-    @Body() createDatabaseBackup: DatabaseCredentialsDto,
+    @Body() createDatabaseBackup: CreateBackupDto,
     @Req() request: Request,
   ) {
     const userId = getUserIdFromRequestOrThrowError(request);
@@ -61,6 +62,14 @@ export class DatabaseController {
     const userId = getUserIdFromRequestOrThrowError(request);
 
     return await this.databaseService.getUserBackups(userId);
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Delete('/backup/all')
+  async deleteAllDatabaseBackups(@Req() request: Request) {
+    const userId = getUserIdFromRequestOrThrowError(request);
+
+    return await this.databaseService.deleteAllDatabaseBackups(userId);
   }
 
   @HttpCode(HttpStatus.OK)

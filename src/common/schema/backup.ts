@@ -6,7 +6,6 @@ import { DatabaseCredentials } from '../types/databaseCredentials';
 
 export type UserDocument = HydratedDocument<Backup>;
 
-// Subdocument Schema for a Comment
 const DatabaseCredentialsSchema = new mongoose.Schema<DatabaseCredentials>({
   host: { type: String, required: true },
   name: { type: String, required: true },
@@ -18,6 +17,9 @@ const DatabaseCredentialsSchema = new mongoose.Schema<DatabaseCredentials>({
 export class Backup {
   @Prop({ required: true, type: mongoose.Schema.Types.ObjectId, ref: 'User' })
   userId: User;
+
+  @Prop({ required: true })
+  name: string;
 
   @Prop({ required: true, enum: Database })
   databaseType: Database;
