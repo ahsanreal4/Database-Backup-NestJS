@@ -37,6 +37,12 @@ export class FileUploadService {
     });
   }
 
+  async getTextFile(url: string) {
+    const result = await fetch(url, { method: 'GET' });
+
+    return await result.text();
+  }
+
   async uploadFile(
     buffer: Buffer,
     fileName: string,

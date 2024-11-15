@@ -44,6 +44,12 @@ export class DatabaseController {
   }
 
   @HttpCode(HttpStatus.OK)
+  @Post('/backup/:id/restore')
+  async restoreBackup(@Param('id') id: string) {
+    return await this.databaseService.restoreBackup(id);
+  }
+
+  @HttpCode(HttpStatus.OK)
   @Put('/backup/:id')
   async updateUserBackup(@Param('id') id: string) {
     return await this.databaseService.updateDatabaseBackup(id);

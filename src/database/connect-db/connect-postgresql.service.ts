@@ -28,6 +28,25 @@ export class ConnectPostGreSqlService {
     }
   }
 
+  async getDatabaseBackup(databaseCredentialsDto: DatabaseCredentialsDto) {
+    await this.connect(databaseCredentialsDto);
+    const backupData = await this.createDatabaseBackup(databaseCredentialsDto);
+    await this.disconnect();
+
+    return backupData;
+  }
+
+  async restoreBackup(
+    databaseCredentialsDto: DatabaseCredentialsDto,
+    backupData: string,
+  ) {}
+
+  private async createDatabaseBackup(
+    databaseCredentialsDto: DatabaseCredentialsDto,
+  ) {
+    return '';
+  }
+
   async disconnect() {
     await this.connection.end();
   }

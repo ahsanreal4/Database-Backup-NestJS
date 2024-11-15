@@ -24,6 +24,38 @@ export class ConnectMySqlService {
     }
   }
 
+  async getDatabaseBackup(databaseCredentialsDto: DatabaseCredentialsDto) {
+    await this.connect(databaseCredentialsDto);
+    const result = await this.createBackup();
+    await this.disconnect();
+    return result;
+  }
+
+  async restoreBackup(
+    databaseCredentialsDto: DatabaseCredentialsDto,
+    backupData: string,
+  ) {
+    await this.connect(databaseCredentialsDto);
+    await this.restoreBackupUtil(backupData);
+    await this.disconnect();
+  }
+
+  async disconnect() {
+    await this.connection.end();
+  }
+
+  private async restoreBackupUtil(backupData: string) {
+    const backupQueries = backupData.split(';');
+
+    for (const backupQuery of backupQueries) {
+      if (backupQuery.length == 0 || backupQuery.trim().length == 0) continue;
+
+      const queryToExecute = backupQuery + ';';
+
+      await this.executeQuery(queryToExecute);
+    }
+  }
+
   // Method to fetch table schema
   private async getTableSchema(tableName: string): Promise<string> {
     const query = `SHOW CREATE TABLE ${tableName}`;
@@ -32,7 +64,7 @@ export class ConnectMySqlService {
   }
 
   // Method to fetch all data from a table
-  async getTableData(tableName: string): Promise<any[]> {
+  private async getTableData(tableName: string): Promise<any[]> {
     const query = `SELECT * FROM ${tableName}`;
     const [rows] = await this.executeQuery(query);
     return rows;
@@ -50,7 +82,9 @@ export class ConnectMySqlService {
     try {
       return await this.connection.query(query);
     } catch (error) {
-      console.error('Error while fetching table names from MySQL database');
+      console.error('Error while executing query on MySQL database');
+      console.error(query);
+      console.error(error.message);
     }
   }
 
@@ -80,18 +114,5 @@ export class ConnectMySqlService {
     } catch (error) {
       throw new BadRequestException('Database backup failed', error.message);
     }
-  }
-
-  private async restoreBackup(backup: string) {}
-
-  async getDatabaseBackup(databaseCredentialsDto: DatabaseCredentialsDto) {
-    await this.connect(databaseCredentialsDto);
-    const result = await this.createBackup();
-    await this.disconnect();
-    return result;
-  }
-
-  async disconnect() {
-    await this.connection.end();
   }
 }

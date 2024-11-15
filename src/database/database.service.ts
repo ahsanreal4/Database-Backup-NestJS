@@ -23,12 +23,138 @@ export class DatabaseService {
     @InjectModel(Backup.name) private backupModel: Model<Backup>,
   ) {}
 
+  async testDatabaseConnection(databaseCredentialsDto: DatabaseCredentialsDto) {
+    this.throwErrorIfDatabaseNotSupported(databaseCredentialsDto.databaseType);
+    await this.connectDatabase(databaseCredentialsDto);
+    await this.disconnectDatabase(databaseCredentialsDto.databaseType);
+
+    return 'Database connected successfully';
+  }
+
+  async createDatabaseBackup(
+    databaseCredentialsDto: DatabaseCredentialsDto,
+    userId: string,
+  ) {
+    this.throwErrorIfDatabaseNotSupported(databaseCredentialsDto.databaseType);
+    const backupData = await this.createDatabaseBackupUtil(
+      databaseCredentialsDto,
+    );
+
+    const result = await this.writeToFile(
+      backupData,
+      databaseCredentialsDto.name,
+    );
+
+    const backup: Backup = {
+      publicId: result.public_id,
+      createdAt: new Date(),
+      databaseType: databaseCredentialsDto.databaseType,
+      url: result.url,
+      userId: userId as unknown as User,
+      databaseCredentials: databaseCredentialsDto,
+    };
+
+    try {
+      const saveBackup = new this.backupModel(backup);
+      await saveBackup.save();
+    } catch (error) {
+      await this.deleteFile(backup.publicId);
+
+      throw new BadRequestException(
+        'Error while creating backup',
+        error.message,
+      );
+    }
+
+    return result.url;
+  }
+
+  async restoreBackup(backupId: string) {
+    const backup = await this.returnBackupOrThrowError(backupId);
+
+    const { host, name, password, username } = backup.databaseCredentials;
+
+    const databaseCredentialsDto: DatabaseCredentialsDto = {
+      databaseType: backup.databaseType,
+      host,
+      name,
+      password,
+      username,
+    };
+
+    const backupData = await this.fileService.getTextFile(backup.url);
+
+    await this.restoreDatabaseBackupUtil(databaseCredentialsDto, backupData);
+
+    return 'Database restored successfully';
+  }
+
+  async updateDatabaseBackup(backupId: string) {
+    const backup = await this.returnBackupOrThrowError(backupId);
+
+    const { host, name, password, username } = backup.databaseCredentials;
+
+    const databaseCredentialsDto: DatabaseCredentialsDto = {
+      databaseType: backup.databaseType,
+      host,
+      name,
+      password,
+      username,
+    };
+
+    const backupData = await this.createDatabaseBackupUtil(
+      databaseCredentialsDto,
+    );
+
+    const result = await this.writeToFile(
+      backupData,
+      backup.databaseCredentials.name,
+    );
+
+    await this.deleteFile(backup.publicId);
+
+    backup.publicId = result.public_id;
+    backup.url = result.url;
+    backup.createdAt = new Date();
+
+    await backup.save();
+
+    return 'Backup updated successfully';
+  }
+
+  async getUserBackups(userId: string) {
+    return await this.backupModel.find({ userId }).exec();
+  }
+
+  async deleteDatabaseBackup(backupId: string) {
+    const backup = await this.backupModel.findByIdAndDelete(backupId).exec();
+
+    if (!backup)
+      throw new NotFoundException(
+        'delete backup failed',
+        'backup with id ' + backupId + ' does not exist',
+      );
+
+    await this.deleteFile(backup.publicId);
+
+    return 'Backup deleted successfully';
+  }
+
+  private async deleteFile(publicId: string) {
+    try {
+      await this.fileService.deleteFile(publicId);
+    } catch (error) {
+      console.error('Error while deleting file from Cloudinary');
+      console.error(error.message);
+    }
+  }
+
   private isDatabaseSupported(database: Database): boolean {
     switch (database) {
       case Database.MYSQL:
         return true;
       case Database.POSTGRE_SQL:
-        return true;
+        return false;
       case Database.MONGO:
         return false;
     }
@@ -95,66 +221,30 @@ export class DatabaseService {
     //
     //
     // PostGreSQL
-    // else if (databaseCredentialsDto.databaseType == Database.POSTGRE_SQL)
-    // return await this.postGreSqlService.disconnect();
-  }
-
-  async testDatabaseConnection(databaseCredentialsDto: DatabaseCredentialsDto) {
-    this.throwErrorIfDatabaseNotSupported(databaseCredentialsDto.databaseType);
-    await this.connectDatabase(databaseCredentialsDto);
-    await this.disconnectDatabase(databaseCredentialsDto.databaseType);
-
-    return 'Database connected successfully';
-  }
-
-  private async deleteFile(publicId: string) {
-    try {
-      await this.fileService.deleteFile(publicId);
-    } catch (error) {
-      console.error('Error while deleting file from Cloudinary');
-      console.error(error.message);
-    }
-  }
-
-  async createDatabaseBackup(
-    databaseCredentialsDto: DatabaseCredentialsDto,
-    userId: string,
-  ) {
-    this.throwErrorIfDatabaseNotSupported(databaseCredentialsDto.databaseType);
-    const backupData = await this.createDatabaseBackupUtil(
-      databaseCredentialsDto,
-    );
-
-    const result = await this.writeToFile(
-      backupData,
-      databaseCredentialsDto.name,
-    );
-
-    const backup: Backup = {
-      publicId: result.public_id,
-      createdAt: new Date(),
-      databaseType: databaseCredentialsDto.databaseType,
-      url: result.url,
-      userId: userId as unknown as User,
-      databaseCredentials: databaseCredentialsDto,
-    };
-
-    try {
-      const saveBackup = new this.backupModel(backup);
-      await saveBackup.save();
-    } catch (error) {
-      await this.deleteFile(backup.publicId);
-
-      throw new BadRequestException(
-        'Error while creating backup',
-        error.message,
+    else if (databaseCredentialsDto.databaseType == Database.POSTGRE_SQL)
+      return await this.postGreSqlService.getDatabaseBackup(
+        databaseCredentialsDto,
       );
-    }
-
-    return result.url;
   }
 
-  async updateDatabaseBackup(backupId: string) {
+  private async restoreDatabaseBackupUtil(
+    databaseCredentialsDto: DatabaseCredentialsDto,
+    backupData: string,
+  ) {
+    // MySQL
+    if (databaseCredentialsDto.databaseType == Database.MYSQL)
+      await this.mySqlService.restoreBackup(databaseCredentialsDto, backupData);
+    //
+    //
+    // PostGreSQL
+    else if (databaseCredentialsDto.databaseType == Database.POSTGRE_SQL)
+      await this.postGreSqlService.restoreBackup(
+        databaseCredentialsDto,
+        backupData,
+      );
+  }
+
+  private async returnBackupOrThrowError(backupId: string) {
     const backup = await this.backupModel.findOne({ _id: backupId }).exec();
 
     if (!backup)
@@ -163,51 +253,6 @@ export class DatabaseService {
         'backup with id ' + backupId + ' does not exist',
       );
 
-    const { host, name, password, username } = backup.databaseCredentials;
-
-    const databaseCredentialsDto: DatabaseCredentialsDto = {
-      databaseType: backup.databaseType,
-      host,
-      name,
-      password,
-      username,
-    };
-
-    const backupData = await this.createDatabaseBackupUtil(
-      databaseCredentialsDto,
-    );
-
-    const result = await this.writeToFile(
-      backupData,
-      backup.databaseCredentials.name,
-    );
-
-    await this.deleteFile(backup.publicId);
-
-    backup.publicId = result.public_id;
-    backup.url = result.url;
-    backup.createdAt = new Date();
-
-    await backup.save();
-
-    return 'Backup updated successfully';
-  }
-
-  async getUserBackups(userId: string) {
-    return await this.backupModel.find({ userId }).exec();
-  }
-
-  async deleteDatabaseBackup(backupId: string) {
-    const backup = await this.backupModel.findByIdAndDelete(backupId).exec();
-
-    if (!backup)
-      throw new NotFoundException(
-        'delete backup failed',
-        'backup with id ' + backupId + ' does not exist',
-      );
-
-    await this.deleteFile(backup.publicId);
-
-    return 'Backup deleted successfully';
+    return backup;
   }
 }
