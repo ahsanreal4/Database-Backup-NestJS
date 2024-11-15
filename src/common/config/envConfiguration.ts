@@ -1,4 +1,4 @@
-import { EnvironmentVariables } from 'src/types/environmentVariables';
+import { EnvironmentVariables } from 'src/common/types/environmentVariables';
 
 export default (): EnvironmentVariables => ({
   cloudinary: {

@@ -14,7 +14,8 @@ import { JwtAuthGuard } from './auth.guard';
       signOptions: { expiresIn: '1h' }, // Token expiration time
     }),
   ],
-  providers: [AuthService],
+  providers: [AuthService, JwtAuthGuard],
   controllers: [AuthController],
+  exports: [AuthService, JwtAuthGuard],
 })
 export class AuthModule {}

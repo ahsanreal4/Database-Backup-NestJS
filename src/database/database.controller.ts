@@ -1,28 +1,65 @@
-import { Body, Controller, HttpCode, HttpStatus, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  Post,
+  Put,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { DatabaseCredentialsDto } from 'src/database/dto/databaseCredentialsDto';
-import { ClientDatabaseService } from './client-database.service';
+import { DatabaseService } from './database.service';
+import { JwtAuthGuard } from 'src/auth/auth.guard';
+import { getUserIdFromRequestOrThrowError } from 'src/common/utils/request';
 
+@UseGuards(JwtAuthGuard)
 @Controller('api/database')
 export class DatabaseController {
-  constructor(private clientDatabaseService: ClientDatabaseService) {}
+  constructor(private databaseService: DatabaseService) {}
 
   @HttpCode(HttpStatus.OK)
   @Post('/')
   async testDatabaseConnection(
     @Body() testDatabaseDto: DatabaseCredentialsDto,
   ): Promise<string> {
-    return await this.clientDatabaseService.testDatabaseConnection(
-      testDatabaseDto,
+    return await this.databaseService.testDatabaseConnection(testDatabaseDto);
+  }
+
+  @HttpCode(HttpStatus.CREATED)
+  @Post('/backup')
+  async createDatabaseBackup(
+    @Body() createDatabaseBackup: DatabaseCredentialsDto,
+    @Req() request: Request,
+  ) {
+    const userId = getUserIdFromRequestOrThrowError(request);
+
+    return await this.databaseService.createDatabaseBackup(
+      createDatabaseBackup,
+      userId,
     );
   }
 
   @HttpCode(HttpStatus.OK)
-  @Post('/backup')
-  async createDatabaseBackup(
-    @Body() createDatabaseBackup: DatabaseCredentialsDto,
-  ) {
-    return await this.clientDatabaseService.createDatabaseBackup(
-      createDatabaseBackup,
-    );
+  @Put('/backup/:id')
+  async updateUserBackup(@Param('id') id: string) {
+    return await this.databaseService.updateDatabaseBackup(id);
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Get('/backup')
+  async getUserBackups(@Req() request: Request) {
+    const userId = getUserIdFromRequestOrThrowError(request);
+
+    return await this.databaseService.getUserBackups(userId);
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Delete('/backup/:id')
+  async deleteDatabaseBackup(@Param('id') id: string) {
+    return await this.databaseService.deleteDatabaseBackup(id);
   }
 }
