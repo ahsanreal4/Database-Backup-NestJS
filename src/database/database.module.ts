@@ -3,10 +3,10 @@ import { DatabaseService } from './database.service';
 import { DatabaseController } from './database.controller';
 import { ConnectMySqlService } from './connect-db/connect-mysql.service';
 import { ConnectPostGreSqlService } from './connect-db/connect-postgresql.service';
-import { FileUploadModule } from 'src/file-upload/file-upload.module';
-import { Backup, BackupSchema } from 'src/common/schema/backup';
+import { FileUploadModule } from '../file-upload/file-upload.module';
+import { Backup, BackupSchema } from '../common/schema/backup';
 import { MongooseModule } from '@nestjs/mongoose';
-import { AuthModule } from 'src/auth/auth.module';
+import { AuthModule } from '../auth/auth.module';
 import { ConnectDbService } from './connect-db/connect-db.service';
 
 @Module({

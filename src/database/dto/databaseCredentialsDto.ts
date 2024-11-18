@@ -1,5 +1,5 @@
 import { IsString, MinLength, MaxLength, IsEnum } from 'class-validator';
-import { Database } from 'src/common/types/enums/database';
+import { Database } from '../../common/types/enums/database';
 
 export class DatabaseCredentialsDto {
   @IsEnum(Database)

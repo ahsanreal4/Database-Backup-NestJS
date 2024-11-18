@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { MongooseModule } from '@nestjs/mongoose';
-import { User, UserSchema } from 'src/common/schema/user';
+import { User, UserSchema } from '../common/schema/user';
 import { JwtModule } from '@nestjs/jwt';
 import { JwtAuthGuard } from './auth.guard';
 

@@ -10,7 +10,7 @@ import {
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/loginDto';
-import { getUserIdFromRequestOrThrowError } from 'src/common/utils/request';
+import { getUserIdFromRequestOrThrowError } from '../common/utils/request';
 import { JwtAuthGuard } from './auth.guard';
 import { RegisterUserDto } from './dto/registerUserDto';
 import { GetProfileDto } from './dto/getProfileDto';

@@ -3,7 +3,7 @@ import { JwtService } from '@nestjs/jwt';
 import { UnauthorizedException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { User } from 'src/common/schema/user';
+import { User } from '../common/schema/user';
 import { LoginDto } from './dto/loginDto';
 import { RegisterUserDto } from './dto/registerUserDto';
 import { GetProfileDto } from './dto/getProfileDto';

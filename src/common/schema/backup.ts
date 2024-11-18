@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { HydratedDocument } from 'mongoose';
-import { Database } from 'src/common/types/enums/database';
+import { Database } from '../../common/types/enums/database';
 import { User } from './user';
 import { DatabaseCredentials } from '../types/databaseCredentials';
 

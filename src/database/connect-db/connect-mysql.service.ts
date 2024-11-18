@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { DatabaseCredentialsDto } from 'src/database/dto/databaseCredentialsDto';
+import { DatabaseCredentialsDto } from '../../database/dto/databaseCredentialsDto';
 import * as mysql from 'mysql2/promise';
 
 @Injectable()

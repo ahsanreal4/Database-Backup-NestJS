@@ -3,11 +3,11 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { DatabaseCredentialsDto } from 'src/database/dto/databaseCredentialsDto';
-import { Backup } from 'src/common/schema/backup';
+import { DatabaseCredentialsDto } from '../database/dto/databaseCredentialsDto';
+import { Backup } from '../common/schema/backup';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { User } from 'src/common/schema/user';
+import { User } from '../common/schema/user';
 import { CreateBackupDto } from './dto/createBackupDto';
 import { ConnectDbService } from './connect-db/connect-db.service';
 

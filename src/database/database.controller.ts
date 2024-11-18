@@ -11,10 +11,10 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { DatabaseCredentialsDto } from 'src/database/dto/databaseCredentialsDto';
+import { DatabaseCredentialsDto } from '../database/dto/databaseCredentialsDto';
 import { DatabaseService } from './database.service';
-import { JwtAuthGuard } from 'src/auth/auth.guard';
-import { getUserIdFromRequestOrThrowError } from 'src/common/utils/request';
+import { JwtAuthGuard } from '../auth/auth.guard';
+import { getUserIdFromRequestOrThrowError } from '../common/utils/request';
 import { CreateBackupDto } from './dto/createBackupDto';
 import { ApiBearerAuth } from '@nestjs/swagger';
 

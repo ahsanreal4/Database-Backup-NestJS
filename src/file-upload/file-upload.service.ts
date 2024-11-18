@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { v2 as cloudinary, UploadApiResponse } from 'cloudinary';
-import { EnvironmentVariables } from 'src/common/types/environmentVariables';
+import { EnvironmentVariables } from '../common/types/environmentVariables';
 
 @Injectable()
 export class FileUploadService {

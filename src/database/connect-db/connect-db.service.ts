@@ -5,12 +5,12 @@ import {
 } from '@nestjs/common';
 import { ConnectMySqlService } from './connect-mysql.service';
 import { ConnectPostGreSqlService } from './connect-postgresql.service';
-import { FileUploadService } from 'src/file-upload/file-upload.service';
+import { FileUploadService } from '../../file-upload/file-upload.service';
 import { InjectModel } from '@nestjs/mongoose';
-import { Backup } from 'src/common/schema/backup';
+import { Backup } from '../../common/schema/backup';
 import { Model } from 'mongoose';
 import { UploadApiResponse } from 'cloudinary';
-import { Database } from 'src/common/types/enums/database';
+import { Database } from '../../common/types/enums/database';
 import { DatabaseCredentialsDto } from '../dto/databaseCredentialsDto';
 
 @Injectable()
