@@ -26,7 +26,6 @@ export class JwtAuthGuard implements CanActivate {
       request.headers[USER_REQUEST_IDENTIFIER_KEY] = decoded.id;
       return true; // If token is valid, allow the request
     } catch (e) {
-      console.error(e);
       throw new UnauthorizedException('Invalid or expired token');
     }
   }

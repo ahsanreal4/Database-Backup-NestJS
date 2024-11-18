@@ -7,9 +7,15 @@ import { FileUploadModule } from 'src/file-upload/file-upload.module';
 import { Backup, BackupSchema } from 'src/common/schema/backup';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AuthModule } from 'src/auth/auth.module';
+import { ConnectDbService } from './connect-db/connect-db.service';
 
 @Module({
-  providers: [DatabaseService, ConnectMySqlService, ConnectPostGreSqlService],
+  providers: [
+    DatabaseService,
+    ConnectDbService,
+    ConnectMySqlService,
+    ConnectPostGreSqlService,
+  ],
   imports: [
     MongooseModule.forFeature([{ name: Backup.name, schema: BackupSchema }]),
     FileUploadModule,
