@@ -16,8 +16,10 @@ import { DatabaseService } from './database.service';
 import { JwtAuthGuard } from 'src/auth/auth.guard';
 import { getUserIdFromRequestOrThrowError } from 'src/common/utils/request';
 import { CreateBackupDto } from './dto/createBackupDto';
+import { ApiBearerAuth } from '@nestjs/swagger';
 
 @UseGuards(JwtAuthGuard)
+@ApiBearerAuth('JWT')
 @Controller('api/database')
 export class DatabaseController {
   constructor(private databaseService: DatabaseService) {}
